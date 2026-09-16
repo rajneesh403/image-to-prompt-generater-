@@ -1,1 +1,74 @@
+<style type="text/css">
+  .ai-tool-box { background: #1a1a1a; padding: 20px; color: white; border-radius: 10px; font-family: sans-serif; text-align: center; }
+  .ai-tool-box input, .ai-tool-box button, .ai-tool-box textarea { width: 100%; margin-top: 15px; padding: 12px; box-sizing: border-box; border-radius: 6px; }
+  .ai-tool-box button { background: #4CAF50; color: white; border: none; cursor: pointer; font-weight: bold; font-size: 16px; }
+  #imgPreview { max-width: 100%; display: none; margin-top: 15px; border-radius: 8px; }
+  #loading { display: none; color: #ff9800; margin-top: 15px; }
+</style>
+
+<div class="ai-tool-box">
+  <h2>AI इमेज टू प्राम्प्ट</h2>
+  <p>अपनी इमेज चुनें और बेहतरीन प्राम्प्ट पाएं</p>
+  
+  <input type="file" id="imgInput" accept="image/*" onchange="showImage()">
+  <img id="imgPreview">
+  
+  <button id="genBtn" onclick="makePrompt()" disabled>प्राम्प्ट जनरेट करें 🚀</button>
+  <div id="loading">AI सोच रहा है... ⏳</div>
+  
+  <textarea id="resultText" rows="6" placeholder="आपका प्राम्प्ट यहाँ आएगा..." readonly></textarea>
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+  const API_KEY = "AQ.Ab8RN6KzNmiyiLYFYv0noQPw0mg1lri4y3zRQxZyheXQ2RWh4A";
+  let b64Img = "";
+
+  function showImage() {
+    const file = document.getElementById("imgInput").files[0];
+    const img = document.getElementById("imgPreview");
+    const btn = document.getElementById("genBtn");
+    if(file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        img.src = e.target.result;
+        img.style.display = "block";
+        b64Img = e.target.result.split(",")[1];
+        btn.disabled = false;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  async function makePrompt() {
+    if(!b64Img) return;
+    document.getElementById("genBtn").disabled = true;
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("resultText").value = "";
+
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY;
+    const body = {
+      contents: [{ parts: [
+        { text: "Analyze this image and write a highly detailed text-to-image prompt. Describe the main subject, background, lighting, colors, and camera angle. Reply in English." },
+        { inline_data: { mime_type: "image/jpeg", data: b64Img } }
+      ]}]
+    };
+
+    try {
+      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const data = await res.json();
+      if(data.candidates) {
+        document.getElementById("resultText").value = data.candidates[0].content.parts[0].text;
+      } else {
+        document.getElementById("resultText").value = "त्रुटि: प्राम्प्ट नहीं बन पाया।";
+      }
+    } catch(e) {
+      document.getElementById("resultText").value = "सर्वर एरर। कृपया बाद में प्रयास करें।";
+    } finally {
+      document.getElementById("genBtn").disabled = false;
+      document.getElementById("loading").style.display = "none";
+    }
+  }
+//]]>
+</script>
 
