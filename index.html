@@ -1,74 +1,355 @@
-<style type="text/css">
-  .ai-tool-box { background: #1a1a1a; padding: 20px; color: white; border-radius: 10px; font-family: sans-serif; text-align: center; }
-  .ai-tool-box input, .ai-tool-box button, .ai-tool-box textarea { width: 100%; margin-top: 15px; padding: 12px; box-sizing: border-box; border-radius: 6px; }
-  .ai-tool-box button { background: #4CAF50; color: white; border: none; cursor: pointer; font-weight: bold; font-size: 16px; }
-  #imgPreview { max-width: 100%; display: none; margin-top: 15px; border-radius: 8px; }
-  #loading { display: none; color: #ff9800; margin-top: 15px; }
-</style>
-
-<div class="ai-tool-box">
-  <h2>AI इमेज टू प्राम्प्ट</h2>
-  <p>अपनी इमेज चुनें और बेहतरीन प्राम्प्ट पाएं</p>
-  
-  <input type="file" id="imgInput" accept="image/*" onchange="showImage()">
-  <img id="imgPreview">
-  
-  <button id="genBtn" onclick="makePrompt()" disabled>प्राम्प्ट जनरेट करें 🚀</button>
-  <div id="loading">AI सोच रहा है... ⏳</div>
-  
-  <textarea id="resultText" rows="6" placeholder="आपका प्राम्प्ट यहाँ आएगा..." readonly></textarea>
-</div>
-
-<script type="text/javascript">
-//<![CDATA[
-  const API_KEY = "AQ.Ab8RN6KzNmiyiLYFYv0noQPw0mg1lri4y3zRQxZyheXQ2RWh4A";
-  let b64Img = "";
-
-  function showImage() {
-    const file = document.getElementById("imgInput").files[0];
-    const img = document.getElementById("imgPreview");
-    const btn = document.getElementById("genBtn");
-    if(file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        img.src = e.target.result;
-        img.style.display = "block";
-        b64Img = e.target.result.split(",")[1];
-        btn.disabled = false;
-      };
-      reader.readAsDataURL(file);
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OHM10008 | Divine AI Visuals & Tools</title>
+  <style>
+    :root {
+      --bg-color: #050505;
+      --card-bg: linear-gradient(145deg, #111111, #1a1a1a);
+      --gold: #d4af37;
+      --gold-light: #f3e5ab;
+      --text-main: #ffffff;
+      --text-muted: #aaaaaa;
+      --border-color: rgba(212, 175, 55, 0.3);
     }
-  }
+    
+    * { box-sizing: border-box; }
+    body { 
+      background-color: var(--bg-color); 
+      color: var(--text-main); 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      margin: 0; 
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
 
-  async function makePrompt() {
-    if(!b64Img) return;
-    document.getElementById("genBtn").disabled = true;
-    document.getElementById("loading").style.display = "block";
-    document.getElementById("resultText").value = "";
+    /* Header & Navigation */
+    header {
+      background: rgba(10, 10, 10, 0.9);
+      border-bottom: 1px solid var(--border-color);
+      padding: 15px 20px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+    }
+    .brand-title {
+      color: var(--gold); 
+      font-size: 24px;
+      margin: 0;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+    .tagline {
+      color: var(--text-muted);
+      font-size: 10px;
+      margin-top: 4px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
 
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY;
-    const body = {
-      contents: [{ parts: [
-        { text: "Analyze this image and write a highly detailed text-to-image prompt. Describe the main subject, background, lighting, colors, and camera angle. Reply in English." },
-        { inline_data: { mime_type: "image/jpeg", data: b64Img } }
-      ]}]
-    };
+    /* Main Container */
+    .container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .box { 
+      background: var(--card-bg); 
+      padding: 30px 20px; 
+      border-radius: 16px; 
+      width: 100%; 
+      max-width: 600px; 
+      text-align: center; 
+      border: 1px solid var(--border-color); 
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(212, 175, 55, 0.1); 
+    }
+    
+    /* Tabs Navigation */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 25px;
+      background: #080808;
+      padding: 6px;
+      border-radius: 10px;
+      border: 1px solid #222;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 13px;
+      transition: 0.3s;
+    }
+    .tab-btn.active {
+      background: linear-gradient(90deg, #b8860b, var(--gold));
+      color: #000;
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+    }
+    
+    .tool-section { display: none; }
+    .tool-section.active { display: block; }
 
-    try {
-      const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      const data = await res.json();
-      if(data.candidates) {
-        document.getElementById("resultText").value = data.candidates[0].content.parts[0].text;
-      } else {
-        document.getElementById("resultText").value = "त्रुटि: प्राम्प्ट नहीं बन पाया।";
+    /* Home / About Section */
+    .home-content h2 { color: var(--gold); font-size: 22px; margin-bottom: 10px; }
+    .home-content p { color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+    .explore-btn {
+      background: linear-gradient(90deg, #b8860b, var(--gold));
+      color: #000;
+      border: none;
+      padding: 12px 25px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+      transition: 0.3s;
+    }
+    .explore-btn:hover { transform: translateY(-2px); }
+
+    /* Inputs & Buttons */
+    input[type="file"] { display: none; }
+    .custom-file-upload {
+      border: 1px dashed var(--gold);
+      display: inline-block;
+      padding: 20px;
+      cursor: pointer;
+      color: var(--gold);
+      border-radius: 10px;
+      transition: 0.3s;
+      width: 100%;
+      font-size: 14px;
+      background: rgba(212, 175, 55, 0.02);
+    }
+    .custom-file-upload:hover { background: rgba(212, 175, 55, 0.08); }
+    
+    .action-btn { 
+      width: 100%; 
+      margin-top: 20px; 
+      padding: 14px; 
+      border-radius: 10px; 
+      font-size: 15px; 
+      background: linear-gradient(90deg, #b8860b, var(--gold)); 
+      color: #000; 
+      border: none; 
+      cursor: pointer; 
+      font-weight: bold;
+      text-transform: uppercase;
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+      transition: 0.3s;
+    }
+    .action-btn:disabled { background: #222; color: #555; box-shadow: none; cursor: not-allowed; }
+    .action-btn:hover:not(:disabled) { transform: translateY(-2px); }
+    
+    #imgPreview { max-width: 100%; max-height: 250px; display: none; margin: 15px auto 0 auto; border-radius: 8px; border: 1px solid #333; }
+    
+    textarea, .quote-input { 
+      width: 100%; margin-top: 15px; padding: 12px; background: #080808; color: var(--gold); 
+      border: 1px solid #333; border-radius: 10px; resize: none; box-sizing: border-box; font-size: 14px;
+    }
+    textarea:focus, .quote-input:focus { outline: none; border-color: var(--gold); }
+    #loading { display:none; color: var(--gold); margin-top: 12px; font-size: 13px; letter-spacing: 1px; }
+
+    /* Poster Maker */
+    #posterCanvas {
+      max-width: 100%;
+      border: 1px solid #333;
+      border-radius: 10px;
+      margin-top: 15px;
+      display: none;
+      background-color: #000;
+    }
+    .color-picker {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      background: #080808;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #222;
+    }
+    .color-picker input[type="color"] {
+      background: none; border: none; cursor: pointer; height: 30px; width: 45px;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 15px;
+      color: #666;
+      font-size: 11px;
+      border-top: 1px solid #111;
+      letter-spacing: 1px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-title">OHM10008</div>
+    <div class="tagline">Divine AI Visuals • Spiritual Art • Meditation</div>
+  </header>
+
+  <div class="container">
+    <div class="box">
+      
+      <!-- Top Navigation Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('homeTab', this)">होम</button>
+        <button class="tab-btn" onclick="switchTab('promptTool', this)">AI Prompt</button>
+        <button class="tab-btn" onclick="switchTab('posterTool', this)">Poster Maker</button>
+      </div>
+
+      <!-- 0. Home / Welcome Section -->
+      <div id="homeTab" class="tool-section active home-content">
+        <h2>नमस्ते, स्वागत है! 🙏</h2>
+        <p>यह आपका अपना प्रीमियम डिजिटल हब है जहाँ आप स्पिरिचुअल 3D आर्ट के लिए हाई-एंड AI प्राम्प्ट्स जनरेट कर सकते हैं और सोशल मीडिया के लिए शानदार कोट्स/पोस्टर डिज़ाइन कर सकते हैं।</p>
+        <button class="explore-btn" onclick="switchTab('promptTool', document.querySelectorAll('.tab-btn')[1])">टूल इस्तेमाल करें 🚀</button>
+      </div>
+
+      <!-- 1. AI Image to Prompt Tool -->
+      <div id="promptTool" class="tool-section">
+        <label class="custom-file-upload">
+          <input type="file" id="imgInput" accept="image/*" onchange="showImage()">
+          <span id="uploadText">🖼️ 3D आर्ट या इमेज यहाँ अपलोड करें</span>
+        </label>
+        <img id="imgPreview">
+        <button class="action-btn" id="genBtn" onclick="makePrompt()" disabled>प्राम्प्ट जनरेट करें ⚡</button>
+        <div id="loading">AI आपकी इमेज का विश्लेषण कर रहा है... ⏳</div>
+        <textarea id="resultText" rows="5" placeholder="आपका 4K AI प्राम्प्ट यहाँ दिखाई देगा..." readonly></textarea>
+      </div>
+
+      <!-- 2. Poster / Quote Maker Tool -->
+      <div id="posterTool" class="tool-section">
+        <textarea id="quoteText" class="quote-input" rows="3" placeholder="अपना कोट या मैसेज यहाँ लिखें..."></textarea>
+        
+        <div class="color-picker">
+          <label>टेक्स्ट कलर: <input type="color" id="textColor" value="#d4af37"></label>
+          <label>बैकग्राउंड: <input type="color" id="bgColor" value="#050505"></label>
+        </div>
+
+        <button class="action-btn" onclick="generatePoster()">पोस्टर बनाएं ✨</button>
+        
+        <canvas id="posterCanvas" width="1080" height="1080"></canvas>
+        <button class="action-btn" id="downloadBtn" onclick="downloadPoster()" style="display: none; background: linear-gradient(90deg, #4CAF50, #2E8B57); color: white; margin-top: 15px;">PNG डाउनलोड करें ⬇️</button>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    © 2026 OHM10008 • All Rights Reserved
+  </footer>
+
+  <script>
+    function switchTab(tabId, btnElement) {
+      document.querySelectorAll('.tool-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btnElement.classList.add('active');
+    }
+
+    const API_KEY = "यहाँ_अपनी_API_KEY_डालें"; // यहाँ अपनी असली API Key डालें
+    let b64Img = "";
+
+    function showImage() {
+      const f = document.getElementById("imgInput").files[0];
+      const img = document.getElementById("imgPreview");
+      const uploadText = document.getElementById("uploadText");
+      if(f) {
+        uploadText.innerText = "✅ इमेज लोड हो गई";
+        const r = new FileReader();
+        r.onload = e => { 
+          img.src = e.target.result; 
+          img.style.display = "block"; 
+          b64Img = e.target.result.split(",")[1]; 
+          document.getElementById("genBtn").disabled = false; 
+        };
+        r.readAsDataURL(f);
       }
-    } catch(e) {
-      document.getElementById("resultText").value = "सर्वर एरर। कृपया बाद में प्रयास करें।";
-    } finally {
-      document.getElementById("genBtn").disabled = false;
-      document.getElementById("loading").style.display = "none";
     }
-  }
-//]]>
-</script>
 
+    async function makePrompt() {
+      if(!b64Img) return;
+      document.getElementById("genBtn").disabled = true;
+      document.getElementById("loading").style.display = "block";
+      document.getElementById("resultText").value = "";
+      
+      try {
+        const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ parts: [
+            { text: "Analyze this image and write a highly detailed text-to-image prompt. Describe the main subject, background, lighting, colors, and camera angle. Make it suitable for generating high-quality 4K AI visual artwork, 3D illusions, or digital renders. Reply in English." }, 
+            { inline_data: { mime_type: "image/jpeg", data: b64Img } }
+          ]}] })
+        });
+        const data = await res.json();
+        document.getElementById("resultText").value = data.candidates ? data.candidates[0].content.parts[0].text : "त्रुटि: प्राम्प्ट नहीं बन पाया।";
+      } catch(e) {
+        document.getElementById("resultText").value = "सर्वर एरर। कृपया अपनी API Key चेक करें।";
+      } finally {
+        document.getElementById("genBtn").disabled = false;
+        document.getElementById("loading").style.display = "none";
+      }
+    }
+
+    function generatePoster() {
+      const canvas = document.getElementById("posterCanvas");
+      const ctx = canvas.getContext("2d");
+      const text = document.getElementById("quoteText").value;
+      const textColor = document.getElementById("textColor").value;
+      const bgColor = document.getElementById("bgColor").value;
+
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "rgba(212, 175, 55, 0.35)";
+      ctx.font = "bold 45px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("@OHM10008", canvas.width / 2, canvas.height - 60);
+
+      ctx.fillStyle = textColor;
+      ctx.font = "bold 75px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      
+      const lines = text.split('\n');
+      const lineHeight = 95;
+      const startY = (canvas.height / 2) - ((lines.length - 1) * lineHeight) / 2;
+      
+      for(let i = 0; i < lines.length; i++) {
+        ctx.fillText(lines[i], canvas.width / 2, startY + (i * lineHeight));
+      }
+
+      canvas.style.display = "block";
+      document.getElementById("downloadBtn").style.display = "block";
+    }
+
+    function downloadPoster() {
+      const canvas = document.getElementById("posterCanvas");
+      const link = document.createElement('a');
+      link.download = 'OHM10008_Poster.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>
