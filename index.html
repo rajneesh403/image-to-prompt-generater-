@@ -27,7 +27,6 @@
       min-height: 100vh;
     }
 
-    /* Header & Navigation */
     header {
       background: rgba(10, 10, 10, 0.9);
       border-bottom: 1px solid var(--border-color);
@@ -54,7 +53,6 @@
       text-transform: uppercase;
     }
 
-    /* Main Container */
     .container {
       flex: 1;
       display: flex;
@@ -73,7 +71,6 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 25px rgba(212, 175, 55, 0.1); 
     }
     
-    /* Tabs Navigation */
     .tabs {
       display: flex;
       gap: 8px;
@@ -104,7 +101,6 @@
     .tool-section { display: none; }
     .tool-section.active { display: block; }
 
-    /* Home / About Section */
     .home-content h2 { color: var(--gold); font-size: 22px; margin-bottom: 10px; }
     .home-content p { color: var(--text-muted); font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
     .explore-btn {
@@ -120,9 +116,7 @@
       box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
       transition: 0.3s;
     }
-    .explore-btn:hover { transform: translateY(-2px); }
 
-    /* Inputs & Buttons */
     input[type="file"] { display: none; }
     .custom-file-upload {
       border: 1px dashed var(--gold);
@@ -154,7 +148,6 @@
       transition: 0.3s;
     }
     .action-btn:disabled { background: #222; color: #555; box-shadow: none; cursor: not-allowed; }
-    .action-btn:hover:not(:disabled) { transform: translateY(-2px); }
     
     #imgPreview { max-width: 100%; max-height: 250px; display: none; margin: 15px auto 0 auto; border-radius: 8px; border: 1px solid #333; }
     
@@ -165,7 +158,6 @@
     textarea:focus, .quote-input:focus { outline: none; border-color: var(--gold); }
     #loading { display:none; color: var(--gold); margin-top: 12px; font-size: 13px; letter-spacing: 1px; }
 
-    /* Poster Maker */
     #posterCanvas {
       max-width: 100%;
       border: 1px solid #333;
@@ -190,7 +182,6 @@
       background: none; border: none; cursor: pointer; height: 30px; width: 45px;
     }
 
-    /* Footer */
     footer {
       text-align: center;
       padding: 15px;
@@ -211,21 +202,18 @@
   <div class="container">
     <div class="box">
       
-      <!-- Top Navigation Tabs -->
       <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('homeTab', this)">होम</button>
         <button class="tab-btn" onclick="switchTab('promptTool', this)">AI Prompt</button>
         <button class="tab-btn" onclick="switchTab('posterTool', this)">Poster Maker</button>
       </div>
 
-      <!-- 0. Home / Welcome Section -->
       <div id="homeTab" class="tool-section active home-content">
         <h2>नमस्ते, स्वागत है! 🙏</h2>
         <p>यह आपका अपना प्रीमियम डिजिटल हब है जहाँ आप स्पिरिचुअल 3D आर्ट के लिए हाई-एंड AI प्राम्प्ट्स जनरेट कर सकते हैं और सोशल मीडिया के लिए शानदार कोट्स/पोस्टर डिज़ाइन कर सकते हैं।</p>
         <button class="explore-btn" onclick="switchTab('promptTool', document.querySelectorAll('.tab-btn')[1])">टूल इस्तेमाल करें 🚀</button>
       </div>
 
-      <!-- 1. AI Image to Prompt Tool -->
       <div id="promptTool" class="tool-section">
         <label class="custom-file-upload">
           <input type="file" id="imgInput" accept="image/*" onchange="showImage()">
@@ -237,7 +225,6 @@
         <textarea id="resultText" rows="5" placeholder="आपका 4K AI प्राम्प्ट यहाँ दिखाई देगा..." readonly></textarea>
       </div>
 
-      <!-- 2. Poster / Quote Maker Tool -->
       <div id="posterTool" class="tool-section">
         <textarea id="quoteText" class="quote-input" rows="3" placeholder="अपना कोट या मैसेज यहाँ लिखें..."></textarea>
         
@@ -267,7 +254,6 @@
       btnElement.classList.add('active');
     }
 
-    const API_KEY = "AQ.Ab8RN6KzNmiyiLYFYv0noQPw0mg1lri4y3zRQxZyheXQ2RWh4A"; // यहाँ अपनी असली API Key डालें
     let b64Img = "";
 
     function showImage() {
@@ -289,12 +275,21 @@
 
     async function makePrompt() {
       if(!b64Img) return;
+
+      // Check or ask for API Key dynamically
+      let apiKey = localStorage.getItem("gemini_api_key");
+      if (!apiKey) {
+        apiKey = prompt("कृपया अपनी Google Gemini API Key यहाँ दर्ज करें (यह सिर्फ आपके फोन में सेव रहेगी):");
+        if (!apiKey) return;
+        localStorage.setItem("gemini_api_key", apiKey.trim());
+      }
+
       document.getElementById("genBtn").disabled = true;
       document.getElementById("loading").style.display = "block";
       document.getElementById("resultText").value = "";
       
       try {
-        const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY, {
+        const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ contents: [{ parts: [
             { text: "Analyze this image and write a highly detailed text-to-image prompt. Describe the main subject, background, lighting, colors, and camera angle. Make it suitable for generating high-quality 4K AI visual artwork, 3D illusions, or digital renders. Reply in English." }, 
@@ -302,9 +297,14 @@
           ]}] })
         });
         const data = await res.json();
+        if (data.error) {
+          throw new Error(data.error.message);
+        }
         document.getElementById("resultText").value = data.candidates ? data.candidates[0].content.parts[0].text : "त्रुटि: प्राम्प्ट नहीं बन पाया।";
       } catch(e) {
-        document.getElementById("resultText").value = "सर्वर एरर। कृपया अपनी API Key चेक करें।";
+        alert("API Key अमान्य (Invalid) हो सकती है। कृपया अपनी सही Key दर्ज करें।");
+        localStorage.removeItem("gemini_api_key");
+        document.getElementById("resultText").value = "एरर: " + e.message;
       } finally {
         document.getElementById("genBtn").disabled = false;
         document.getElementById("loading").style.display = "none";
